@@ -1,0 +1,31 @@
+#cloud-config
+
+%{ if length(apt_sources) > 0 ~}
+${yamlencode({
+  apt: {
+    preserve_sources_list: true,
+    sources: apt_sources
+  }
+})}
+%{~ endif ~}
+
+package_update: true
+package_upgrade: true
+
+%{ if length(os_packages) > 0 ~}
+${yamlencode({
+  packages: os_packages
+})}
+%{~ endif ~}
+
+%{ if length(runcmd) > 0 ~}
+${yamlencode({
+  runcmd: runcmd
+}) ~}
+%{~ endif ~}
+
+%{ if length(write_files) > 0 ~}
+${yamlencode({
+  write_files: write_files
+}) ~}
+%{~ endif ~}

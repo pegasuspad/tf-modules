@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+declare -A SERIAL_TO_LABEL
+%{ for idx, label in labels ~}
+SERIAL_TO_LABEL["drive-scsi${idx + 1}"]="${label}"
+%{ endfor ~}
+
+declare -A SERIAL_TO_PATH
+%{ for idx, mountpoint in mountpoints ~}
+SERIAL_TO_PATH["drive-scsi${idx + 1}"]="${mountpoint}"
+%{ endfor ~}
+
+declare -A SERIAL_TO_OPTIONS
+%{ for idx, read_only in read_only_flags ~}
+SERIAL_TO_OPTIONS["drive-scsi${idx + 1}"]="${read_only ? "ro" : "defaults"}"
+%{ endfor ~}
+
+OSDISK=$(lsblk -nro NAME,MOUNTPOINT | grep ' /$' | awk '{print $1}')
+
+for DEVICE in $(lsblk -dn -o NAME -e 7,11); do
+  if [ "$DEVICE" != "$OSDISK" ]; then
+    SERIAL=$(lsblk -no SERIAL /dev/$DEVICE)
+
+    if [ "$${SERIAL_TO_PATH["$SERIAL"]}" != "" ]; then
+      MOUNTPOINT=$(lsblk -no MOUNTPOINT /dev/$${DEVICE})
+      TARGET=$${SERIAL_TO_PATH["$SERIAL"]}
+      OPTIONS=$${SERIAL_TO_OPTIONS["$SERIAL"]}
+
+      if [ -z "$MOUNTPOINT" ] && ! blkid /dev/$${DEVICE}; then
+        mkfs.ext4 -L "$${SERIAL_TO_LABEL["$SERIAL"]}" /dev/$${DEVICE}
+        # Trigger udev to recognize new devices after formatting
+        udevadm trigger --action=add
+        sleep 2
+      fi
+
+      UUID=$(blkid -s UUID -o value /dev/$${DEVICE})
+      mkdir -p $TARGET
+      mount -o $OPTIONS /dev/disk/by-uuid/$${UUID} $TARGET
+
+      if ! grep -q "UUID=$${UUID}" /etc/fstab; then
+          echo "UUID=$${UUID} $TARGET ext4 $OPTIONS 0 2" >> /etc/fstab
+      fi
+    fi
+  fi
+done

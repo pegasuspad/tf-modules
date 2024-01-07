@@ -16,33 +16,15 @@ variable "boot_iso_id" {
   type        = string
 }
 
-variable "category" {
-  default     = "other"
-  description = <<-EOT
-    VM category, which applies default tags and controls the startup order.. Must be one of the following values:
-
-      - network: network infrastructure, which starts first
-      - infrastructure: other core services to start immediately, such as NFS
-      - desktop: user desktops
-      - internal: services used internally by the household
-      - external: services accessible to external users
-      - other: do not automatically start this VM
-
-    VMs are started in the order defined above.
-  EOT
+variable "cloud_config_file_id" {
+  default     = null
+  description = "ID of the snippet file containing the cloud-init configuration (will be applied as user-data)."
   type        = string
+}
 
-  validation {
-    condition     = contains([
-      "desktop",
-      "external",
-      "infrastructure", 
-      "internal",
-      "network", 
-      "other"
-    ], var.category)
-    error_message = "Valid values for var: category are (network, infrastructure, desktop, internal, external, and other)."
-  } 
+variable "cloud_init_datastore_id" {
+  description = "ID of the Promox datastore to which the cloud-init drive should be saved"
+  type        = string
 }
 
 variable "cpu_cores" {
@@ -51,15 +33,15 @@ variable "cpu_cores" {
   type        = number
 }
 
-variable "data_disks" {
+variable "data_disk_config" {
   default = []
   description = <<-EOT
-    Set of data disks to import from another non-bootable VM. This is done so the disks can be preserved in the event 
-    the primary VM needs to be recreated. Must be a list of objects, each entry of which is a data disk to import. The
-    structure for the list items is the same as for the proxmox_virtual_environment_vm.disk field.
+Set of data disks to import from another non-bootable VM. This is done so the disks can be preserved in the event 
+the primary VM needs to be recreated. Must be a list of objects, each entry of which is a data disk to import. The
+structure for the list items is the same as for the proxmox_virtual_environment_vm.disk field.
 
-    To determine how these disks are formatted and mounted, see the data_disk_attachment variable.
-  EOT
+To determine how these disks are formatted and mounted, see the data_disk_attachment variable.
+EOT
   type    = list(object({
     datastore_id      = string
     file_format       = string
@@ -75,6 +57,7 @@ variable "description" {
   type        = string  
 }
 
+# DEFUNCT - must be handled through cloud-init, since we overwrite user-data
 variable "gateway_ip" {
   default     = null
   description = "IPv4 address of the VM's internet gateway. Must not be set if using DHCP."
@@ -82,13 +65,7 @@ variable "gateway_ip" {
   type        = string
 }
 
-variable "id" {
-  default     = null
-  description = "VMID for the new virtual machine, which must be unique"
-  nullable    = true
-  type        = number
-}
-
+# DEFUNCT - must be handled through cloud-init, since we overwrite user-data
 variable "ip_address" {
   default     = "dhcp"
   description = "IPv4 address in CIDR notation. Will use DHCP if not set."
@@ -107,39 +84,44 @@ variable "name" {
   type        = string  
 }
 
-variable "proxmox_node_name" {
+variable "proxmox_node" {
   description = "Node name of the Proxmox server on which to create the VM."
   type        = string
 }
-
-variable "ssh_keys" {
-  default     = [
-    # Ansible public key
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID4YCHwuduiKLABDLMgIh3PEQP1VPNu7nR4RB9tYFwMV sean@prod-ansible"
-  ]
-  description = <<EOT
-Public keys that will be accepted for authentication by the default user. The default username is set via 'username'.
-EOT
-  nullable    = false
-  type        = list(string)
-}
-
-variable "cloud_init_datastore_id" {
-  description = "ID of the Promox datastore to which the cloud-init drive should be saved"
-  type        = string
-}
-
-variable "cloud_init_vendor_data_file_id" {
-  default     = null
-  description = "ID of the snippet file containing the cloud-init vendor data."
-  type        = string
-}
-
 
 variable "startup_delay" {
   default     = null
   description = "Optional delay, in seconds, to wait after this VM is started before starting the next one."
   type        = number
+}
+
+variable "startup_phase" {
+  default     = "never"
+  description = <<-EOT
+The startup phase in which to include this VM. Phases are started in sequential order, with all VMs in a
+phase being started before the next phase begins. Must be one of the following values (which are shown in the
+order they will start up):
+
+  - network: network infrastructure, which starts first
+  - infrastructure: other core services to start immediately, such as NFS
+  - desktop: user desktops
+  - internal: services used internally by the household
+  - external: services accessible to external users
+  - never: do not automatically start this VM
+EOT
+  type        = string
+
+  validation {
+    condition     = contains([
+      "desktop",
+      "external",
+      "infrastructure", 
+      "internal",
+      "network", 
+      "never"
+    ], var.startup_phase)
+    error_message = "Valid values for var 'startup_phase' are (network, infrastructure, desktop, internal, external, and never)."
+  } 
 }
 
 variable "tags" {
@@ -148,9 +130,9 @@ variable "tags" {
   type        = list(string)
 }
 
-variable "username" {
-  default     = "ansible"
-  description = "Name of the initial user that is created on the virtual machine."
-  nullable    = false
-  type        = string
+variable "vmid" {
+  default     = null
+  description = "VMID for the new virtual machine, which must be unique. The next available ID is assigned if unspecified."
+  nullable    = true
+  type        = number
 }

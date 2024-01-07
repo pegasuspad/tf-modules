@@ -1,36 +1,27 @@
 locals {
-  default_tag_sets = {
-    network        = ["network"]
-    infrastructure = ["infrastructure"]
-    desktop        = ["desktop"]
-    internal       = []
-    external       = ["public"]
-    other          = []  
-  }
-
-  startup_orders = {
+  startup_phases = {
     network        = 1000
     infrastructure = 2000
     desktop        = 3000
     internal       = 4000
     external       = 5000
-    other          = null    
+    never          = null    
   }
 
-  default_tags  = local.default_tag_sets[var.category]
-  startup_order = local.startup_orders[var.category]
+  default_tags  = var.startup_phase == "never" ? ["manual_start"] : [var.startup_phase] 
+  startup_order = local.startup_phases[var.startup_phase]
 }
 
 resource "proxmox_virtual_environment_vm" "main" {
   boot_order    = ["scsi0"] 
   description   = var.description
   name          = var.name
-  node_name     = var.proxmox_node_name
+  node_name     = var.proxmox_node
   on_boot       = local.startup_order == null ? false : true
   scsi_hardware = "virtio-scsi-single"
   started       = true
   tags          = concat(local.default_tags, var.tags)
-  vm_id         = var.id
+  vm_id         = var.vmid
 
   agent {
     enabled = true
@@ -53,7 +44,7 @@ resource "proxmox_virtual_environment_vm" "main" {
   # See: https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_vm#example-attached-disks
   # attached disks from disk-holder VM
   dynamic "disk" {
-    for_each = { for idx, val in (length(var.data_disks) == 0 ? [] : var.data_disks) : idx => val }
+    for_each = { for idx, val in (length(var.data_disk_config) == 0 ? [] : var.data_disk_config) : idx => val }
     iterator = data_disk
 
     # assign from scsi1 and up
@@ -69,19 +60,14 @@ resource "proxmox_virtual_environment_vm" "main" {
   }
 
   initialization {
-    datastore_id        = var.cloud_init_datastore_id
-    vendor_data_file_id = var.cloud_init_vendor_data_file_id
+    datastore_id      = var.cloud_init_datastore_id
+    user_data_file_id = var.cloud_config_file_id
 
     ip_config {
       ipv4 {
         address = var.ip_address
         gateway = var.gateway_ip
       }
-    }
-
-    user_account {
-      keys     = var.ssh_keys
-      username = var.username
     }
   }
   

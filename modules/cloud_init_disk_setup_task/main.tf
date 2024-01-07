@@ -32,11 +32,11 @@
 
 locals {
   # extracts the label from each configured data_disk, defaultint to "diskN" if not provided
-  setup_disks_labels          = [for idx, disk in var.data_disk_attachment : disk.label == null ? "disk${idx + 1}" : disk.label]
+  setup_disks_labels          = [for idx, disk in var.disk_config : disk.label == null ? "disk${idx + 1}" : disk.label]
 
   # extracts the mountpoint from each configured data_disk
-  setup_disks_mountpoints     = var.data_disk_attachment[*].mountpoint
+  setup_disks_mountpoints     = var.disk_config[*].mountpoint
  
   # extracts the read_only from each configured data_disk
-  setup_disks_read_only_flags = [for idx, disk in var.data_disk_attachment : disk.read_only == null ? false : disk.read_only]
+  setup_disks_read_only_flags = [for idx, disk in var.disk_config : disk.read_only == null ? false : disk.read_only]
 }

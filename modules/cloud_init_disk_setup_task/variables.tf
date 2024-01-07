@@ -1,4 +1,4 @@
-variable "data_disk_attachment" {
+variable "disk_config" {
   description = <<EOT
 Configuration for how to format and mount the VM's data disk(s), if any. Must be a list of objects, each entry of which 
 defines a data disk to attach. Each disk attachment configuration has the following properties:

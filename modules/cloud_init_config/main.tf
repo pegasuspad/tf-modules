@@ -22,16 +22,34 @@ locals {
     }
   ]])
 
+  # map our input properties to the cloud-init param names
+  users_with_nulls = [
+    for user in var.users : {
+      name                = user.username
+      ssh_authorized_keys = user.ssh_authorized_keys
+      ssh_import_id       = user.ssh_import_id
+      sudo                = user.sudo ? "ALL=(ALL) NOPASSWD:ALL" : null
+    }
+  ]
+  # create a "users" list  without null values
+  users = [
+    for user in local.users_with_nulls : {
+      for prop, value in user : prop => value if value != null
+    }
+  ]
+
   content = templatefile(
-    "${path.module}/vendor-data.yml.tftpl",
+    "${path.module}/cloud-config.yml.tftpl",
     {
       apt_sources = merge(local.init_tasks_apt_sources...)
-      runcmd      = concat(local.init_tasks_runcmd, local.default_runcmd)
-      write_files = concat(local.init_tasks_write_files)
+      hostname    = var.hostname
       os_packages = toset(sort(concat(
         local.init_tasks_packages,
         local.default_packages
       )))
+      runcmd      = concat(local.init_tasks_runcmd, local.default_runcmd)
+      users       = local.users
+      write_files = concat(local.init_tasks_write_files)
     }
   )
   content_hash = md5(local.content)
@@ -45,6 +63,6 @@ resource "proxmox_virtual_environment_file" "cloudinit_vendor_data" {
 
   source_raw {
     data      = local.content 
-    file_name = "cloudinit-vendor-data-${local.content_hash}.yml"
+    file_name = "cloudinit-config-${var.hostname}.yml"
   }
 }

@@ -9,18 +9,30 @@ ${yamlencode({
 })}
 %{~ endif ~}
 
+%{ if hostname != null ~}
+${yamlencode({
+  hostname: hostname
+}) ~}
+%{~ endif ~}
+
 package_update: true
 package_upgrade: true
 
 %{ if length(os_packages) > 0 ~}
 ${yamlencode({
   packages: os_packages
-})}
+}) ~}
 %{~ endif ~}
 
 %{ if length(runcmd) > 0 ~}
 ${yamlencode({
   runcmd: runcmd
+}) ~}
+%{~ endif ~}
+
+%{ if length(users) > 0 ~}
+${yamlencode({
+  users: users
 }) ~}
 %{~ endif ~}
 

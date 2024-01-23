@@ -30,17 +30,15 @@ EOT
   } 
 }
 
+variable "name" {
+  description = "Name of the virtual machine."
+  nullable    = false
+  type        = string  
+}
+
 variable "proxmox_node" {
   description = "Node name of the Proxmox server on which to create the data disk VM."
   type        = string
-}
-
-variable "purpose" {
-  description = <<-EOT
-Name of the resource or application for which disks are being created. This name will be used
-to set the VM name and description.
-EOT
-  type        = string  
 }
 
 variable "ssd_datastore_ids" {

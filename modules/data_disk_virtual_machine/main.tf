@@ -1,5 +1,5 @@
 resource "proxmox_virtual_environment_vm" "main" {
-  name      = "disks-for-${var.purpose}"
+  name      = var.name
   node_name = var.proxmox_node
   on_boot   = false
   started   = false

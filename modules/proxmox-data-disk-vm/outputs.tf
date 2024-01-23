@@ -3,6 +3,11 @@ output "data_disk_vm" {
   value       = proxmox_virtual_environment_vm.main
 }
 
+output "disk_config" {
+  description = "Configuration of the attached data disks."
+  value       = var.disk_config
+}
+
 output "disk_setup_task" {
   description = <<EOT
 A cloud-init setup task (usable as an `init_tasks` value for the `proxmox-cloudinit-vendor-data` module) that will format and mount

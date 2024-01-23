@@ -29,6 +29,6 @@ resource "proxmox_virtual_environment_vm" "main" {
 }
 
 module "disk_setup_task" {
-  source = "../cloud_init_disk_setup_task"
+  source = "../proxmox-cloudinit-disk-setup-task"
   disk_config = var.disk_config
 }

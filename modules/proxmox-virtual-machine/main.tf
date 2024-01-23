@@ -21,6 +21,7 @@ resource "proxmox_virtual_environment_vm" "main" {
   scsi_hardware = "virtio-scsi-single"
   started       = true
   tags          = concat(local.default_tags, var.tags)
+  timeout_create = 1800
   vm_id         = var.vmid
 
   agent {

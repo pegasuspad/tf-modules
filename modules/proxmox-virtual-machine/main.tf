@@ -35,11 +35,12 @@ resource "proxmox_virtual_environment_vm" "main" {
   }
 
   disk {
-    datastore_id = var.boot_disk.datastore_id
+    datastore_id = var.boot_disk.datastore
     file_id      = var.boot_iso_id
     interface    = "scsi0"
     iothread     = true
     size         = var.boot_disk.size
+    ssd          = var.boot_disk.ssd
   }
 
   # See: https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_vm#example-attached-disks
@@ -61,15 +62,9 @@ resource "proxmox_virtual_environment_vm" "main" {
   }
 
   initialization {
-    datastore_id      = var.cloud_init_datastore_id
-    user_data_file_id = var.cloud_config_file_id
-
-    ip_config {
-      ipv4 {
-        address = var.ip_address
-        gateway = var.gateway_ip
-      }
-    }
+    datastore_id         = var.cloud_init_datastore
+    network_data_file_id = var.network_config == null ? null : proxmox_virtual_environment_file.cloudinit_network_data[0].id
+    user_data_file_id    = var.user_data_file_id
   }
   
   memory {
@@ -79,6 +74,7 @@ resource "proxmox_virtual_environment_vm" "main" {
   network_device {
     bridge     = "vmbr0"
     model      = "virtio"
+    mac_address = local.mac_address
   } 
 
   operating_system {

@@ -12,6 +12,7 @@ ${yamlencode({
 %{ if hostname != null ~}
 ${yamlencode({
   hostname: hostname
+  manage_etc_hosts: true
 }) ~}
 %{~ endif ~}
 

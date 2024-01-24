@@ -51,8 +51,8 @@ variable "proxmox_node" {
   type        = string
 }
 
-variable "snippets_datastore_id" {
-  description = "ID of the Promox datastore to which cloudinit snippets should be saved."
+variable "snippets_datastore" {
+  description = "ID of the Promox datastore to which cloud-config snippets should be saved."
   type        = string
 }
 

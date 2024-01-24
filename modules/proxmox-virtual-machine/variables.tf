@@ -2,12 +2,14 @@ variable "boot_disk" {
   description = <<-EOT
     Configuration for the VM's boot disk:
       
-      - datastore_id: ID of the proxmox storage to which the disk will be saved.
+      - datastore: ID of the proxmox storage to which the disk will be saved.
       - size: size of the boot disk, in GB. [Default: 8]
+      - ssd: whether the datastore is an SSD or not (Default: false)
   EOT
   type        = object({
-    datastore_id = string
-    size         = optional(number, 8)
+    datastore = string
+    size      = optional(number, 8)
+    ssd       = optional(bool, false)
   })
 }
 
@@ -16,14 +18,8 @@ variable "boot_iso_id" {
   type        = string
 }
 
-variable "cloud_config_file_id" {
-  default     = null
-  description = "ID of the snippet file containing the cloud-init configuration (will be applied as user-data)."
-  type        = string
-}
-
-variable "cloud_init_datastore_id" {
-  description = "ID of the Promox datastore to which the cloud-init drive should be saved"
+variable "cloud_init_datastore" {
+  description = "ID of the Promox datastore to which the cloud-init drive ISO should be saved"
   type        = string
 }
 
@@ -57,22 +53,6 @@ variable "description" {
   type        = string  
 }
 
-# DEFUNCT - must be handled through cloud-init, since we overwrite user-data
-variable "gateway_ip" {
-  default     = null
-  description = "IPv4 address of the VM's internet gateway. Must not be set if using DHCP."
-  nullable    = true
-  type        = string
-}
-
-# DEFUNCT - must be handled through cloud-init, since we overwrite user-data
-variable "ip_address" {
-  default     = "dhcp"
-  description = "IPv4 address in CIDR notation. Will use DHCP if not set."
-  nullable    = false
-  type        = string
-}
-
 variable "memory" {
   default     = 512
   description = "RAM allocated to this VM, in megabytes"
@@ -84,8 +64,35 @@ variable "name" {
   type        = string  
 }
 
+variable "network_config" {
+  default     = null
+  description = <<EOT
+Network parameters for a static IP configuration. If null, dhcp will be used. The following network
+configuration options may be set:
+
+  - dns_server: IP addresss of the DNS server to configure, which defaults to the gateway IP
+  - dns_search_domain: optional default DNS search domain suffix
+  - gateway: IP address of the network gateway
+  - ip_address: static ipv4 address to use
+  - netmask: netmask in dot notation, which defaults to "255.255.255.0"
+EOT
+  nullable    = true
+  type        = object({
+    ip_address        = string
+    gateway           = string
+    netmask           = optional(string)
+    dns_server        = optional(string)
+    dns_search_domain = optional(string)
+  })
+}
+
 variable "proxmox_node" {
   description = "Node name of the Proxmox server on which to create the VM."
+  type        = string
+}
+
+variable "snippets_datastore" {
+  description = "ID of the Promox datastore to which the cloud-init snippets should be saved"
   type        = string
 }
 
@@ -128,6 +135,12 @@ variable "tags" {
   default     = []
   description = "Additional tags to apply to this VM, if any."
   type        = list(string)
+}
+
+variable "user_data_file_id" {
+  default     = null
+  description = "ID of the snippet file containing the cloud-init user-data."
+  type        = string
 }
 
 variable "vmid" {

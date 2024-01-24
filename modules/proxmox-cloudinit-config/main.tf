@@ -29,6 +29,7 @@ locals {
       ssh_authorized_keys = user.ssh_authorized_keys
       ssh_import_id       = user.ssh_import_id
       sudo                = user.sudo ? "ALL=(ALL) NOPASSWD:ALL" : null
+      plain_text_passwd   = "foobar"
     }
   ]
   # create a "users" list  without null values
@@ -57,12 +58,12 @@ locals {
 
 resource "proxmox_virtual_environment_file" "cloudinit_vendor_data" {
   content_type = "snippets"
-  datastore_id = var.snippets_datastore_id
+  datastore_id = var.snippets_datastore
   node_name    = var.proxmox_node
   overwrite    = true
 
   source_raw {
     data      = local.content 
-    file_name = "cloudinit-config-${var.hostname}.yml"
+    file_name = "${var.hostname}-cloud-config-${local.content_hash}.yml"
   }
 }

@@ -1,0 +1,15 @@
+version: 1
+config:
+    - type: physical
+      name: eth0
+      mac_address: '1e:3c:5b:a1:e8:93'
+      subnets:
+      - type: static
+        address: '10.111.1.222'
+        netmask: '255.255.255.0'
+        gateway: '10.111.1.1'
+    - type: nameserver
+      address:
+      - '10.111.1.1'
+      search:
+      - 'home.pegasuspad.com'

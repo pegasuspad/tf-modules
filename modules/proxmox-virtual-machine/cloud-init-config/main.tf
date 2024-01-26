@@ -56,7 +56,7 @@ locals {
   content_hash = md5(local.content)
 }
 
-resource "proxmox_virtual_environment_file" "cloudinit_vendor_data" {
+resource "proxmox_virtual_environment_file" "cloud_config" {
   content_type = "snippets"
   datastore_id = var.snippets_datastore
   node_name    = var.proxmox_node

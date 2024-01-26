@@ -26,10 +26,10 @@ locals {
   users_with_nulls = [
     for user in var.users : {
       name                = user.username
+      shell               = "/bin/bash"
       ssh_authorized_keys = user.ssh_authorized_keys
       ssh_import_id       = user.ssh_import_id
       sudo                = user.sudo ? "ALL=(ALL) NOPASSWD:ALL" : null
-      plain_text_passwd   = "foobar"
     }
   ]
   # create a "users" list  without null values

@@ -5,7 +5,7 @@ variable "hostname" {
 
 variable "init_tasks" {
   description = <<EOT
-List of tasks which will contribute to the generated vendor data. Each task may include any of the following
+List of tasks which will contribute to the generated cloud-config. Each task may include any of the following
 optional values:
 
   - apt_sources: additional set of apt sources to use for package installation

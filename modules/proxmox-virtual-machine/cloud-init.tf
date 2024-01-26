@@ -54,6 +54,16 @@ resource "random_integer" "mac_bytes" {
   max   = 255
 }
 
+module "cloudinit_user_data" {
+  source = "./cloud-init-config"
+
+  hostname           = var.name
+  init_tasks         = var.cloud_init_tasks
+  proxmox_node       = var.proxmox_node
+  snippets_datastore = var.snippets_datastore
+  users              = var.users
+}
+
 resource "proxmox_virtual_environment_file" "cloudinit_network_data" {
   count = var.network_config == null ? 0 : 1
 

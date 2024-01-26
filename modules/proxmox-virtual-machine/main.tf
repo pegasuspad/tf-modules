@@ -12,6 +12,7 @@ locals {
   startup_order = local.startup_phases[var.startup_phase]
 }
 
+
 resource "proxmox_virtual_environment_vm" "main" {
   boot_order    = ["scsi0"] 
   description   = var.description
@@ -64,7 +65,7 @@ resource "proxmox_virtual_environment_vm" "main" {
   initialization {
     datastore_id         = var.cloud_init_datastore
     network_data_file_id = var.network_config == null ? null : proxmox_virtual_environment_file.cloudinit_network_data[0].id
-    user_data_file_id    = var.user_data_file_id
+    user_data_file_id    = module.cloudinit_user_data.file_id
   }
   
   memory {

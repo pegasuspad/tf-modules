@@ -40,12 +40,13 @@ EOT
 
 variable "git_url" {
   description = "URL of the Git repository containing the Ansible provisioning playbook."
+  nullable    = false
   type        = string
 }
 
 variable "playbook" {
-  default     = "ansible/playbook.yml"
   description = "Git repository-relative path to the playbook to invoke."
+  nullable    = false
   type        = string
 }
 

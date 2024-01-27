@@ -5,7 +5,7 @@ locals {
     "reboot"
   ]
 
-  extra_config_list       = [for task in var.init_tasks : task.extra_config]
+  extra_config_list       = [for task in var.init_tasks : task.extra_config if task.extra_config != null]
   init_tasks_extra_config = length(local.extra_config_list) == 0 ? "" : join("\n\n", local.extra_config_list)
   init_tasks_packages     = flatten([for task in var.init_tasks : task.packages == null ? [] : task.packages])
   init_tasks_runcmd       = flatten([for task in var.init_tasks : task.runcmd == null ? [] : task.runcmd])

@@ -16,12 +16,28 @@ locals {
     random_integer.mac_bytes[4].result
   )
 
-  netmask            = var.network_config.netmask == null ? local.default_netmask : var.network_config.netmask
-  search_domain      = var.network_config.dns_search_domain == null ? null : [var.network_config.dns_search_domain]
-  default_dns_server = var.network_config.gateway
-  dns_server         = [var.network_config.dns_server == null ? local.default_dns_server : var.network_config.dns_server]
+  netmask            = try(var.network_config.netmask, null) == null ? local.default_netmask : var.network_config.netmask
+  search_domain      = try(var.network_config.dns_search_domain, null) == null ? null : [var.network_config.dns_search_domain]
+  default_dns_server = try(var.network_config.gateway, null)
+  dns_server         = [try(var.network_config.dns_server, null) == null ? local.default_dns_server : var.network_config.dns_server]
 
-  network_config_data = yamlencode({
+  dhcp_config = yamlencode({
+    version = 1
+    config = [
+      {
+        type        = "physical"
+        mac_address = local.mac_address
+        name        = "eth0"
+        subnets = [
+          {
+            type    = "dhcp"
+          }
+        ]
+      }
+    ]
+  })
+
+  network_config_data = var.network_config == null ? local.dhcp_config : yamlencode({
     version = 1
     config = [
       {
@@ -65,8 +81,6 @@ module "cloudinit_user_data" {
 }
 
 resource "proxmox_virtual_environment_file" "cloudinit_network_data" {
-  count = var.network_config == null ? 0 : 1
-
   content_type = "snippets"
   datastore_id = var.snippets_datastore
   node_name    = var.proxmox_node

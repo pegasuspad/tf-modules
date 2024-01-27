@@ -63,7 +63,7 @@ resource "proxmox_virtual_environment_vm" "main" {
 
   initialization {
     datastore_id         = var.cloud_init_datastore
-    network_data_file_id = var.network_config == null ? null : proxmox_virtual_environment_file.cloudinit_network_data[0].id
+    network_data_file_id = proxmox_virtual_environment_file.cloudinit_network_data.id
     user_data_file_id    = module.cloudinit_user_data.file_id
   }
   

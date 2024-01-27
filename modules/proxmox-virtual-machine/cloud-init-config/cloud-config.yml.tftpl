@@ -42,3 +42,9 @@ ${yamlencode({
   write_files: write_files
 }) ~}
 %{~ endif ~}
+
+%{ if extra_config != null ~}
+%{~ endif ~}
+
+# extra_config
+${extra_config}

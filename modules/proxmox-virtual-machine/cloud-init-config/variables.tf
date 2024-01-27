@@ -9,12 +9,29 @@ List of tasks which will contribute to the generated cloud-config. Each task may
 optional values:
 
   - apt_sources: additional set of apt sources to use for package installation
+  - extra_config: any additional cloud-config module configurations to merge in.
   - packages: set of OS packages to install via `apt`
   - runcmd: list of shell commands to run during provisioning
   - write_files: list of files to write to the disk during provisioning
 
 The `runcmd` commands will be invoked in the given order. The commands for each `init_task` will be executed
-in the order provided to this variable.
+in the order provided to this variable. 
+
+The `extra_config` value will be appended directly to the cloud-config file, and can contain any arbitrary 
+cloud-config modules. Note that, to avoid creating invalid Yaml with  duplicate keys, the following keys should 
+not be configured this way:
+
+  - hostname
+  - manage_etc_hosts
+  - package_update
+  - package_upgrade
+  - packages
+  - runcmd
+  - users
+  - write_files
+
+Additionally, if multiple init_tasks are used, care should be taken to avoid including tasks that define
+the same top-level cloud-config keys.
 
 More information on the specific parameters for each option can be found in the cloud-init documentation:
 
@@ -23,9 +40,18 @@ More information on the specific parameters for each option can be found in the 
 EOT
   default = []
   type = list(object({
-    packages = optional(list(string))
-    runcmd   = optional(list(string))
+    extra_config = optional(string)
+    packages     = optional(list(string))
+    runcmd       = optional(list(string))
     
+    apt_sources = optional(map(object({
+      source   = optional(string)
+      keyid    = optional(string)
+      key      = optional(string)
+      filename = optional(string)
+      append   = optional(bool)
+    })))
+
     write_files = optional(list(object({
       append      = optional(bool)
       content     = optional(string)
@@ -34,14 +60,6 @@ EOT
       owner       = optional(string)
       path        = string
       permissions = optional(string)
-    })))
-    
-    apt_sources = optional(map(object({
-      source   = optional(string)
-      keyid    = optional(string)
-      key      = optional(string)
-      filename = optional(string)
-      append   = optional(bool)
     })))
   }))
 }

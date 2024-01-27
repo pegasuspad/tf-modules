@@ -5,8 +5,10 @@ locals {
     "reboot"
   ]
 
-  init_tasks_packages    = flatten([for task in var.init_tasks : task.packages == null ? [] : task.packages])
-  init_tasks_runcmd      = flatten([for task in var.init_tasks : task.runcmd == null ? [] : task.runcmd])
+  extra_config_list       = [for task in var.init_tasks : task.extra_config]
+  init_tasks_extra_config = length(local.extra_config_list) == 0 ? "" : join("\n\n", local.extra_config_list)
+  init_tasks_packages     = flatten([for task in var.init_tasks : task.packages == null ? [] : task.packages])
+  init_tasks_runcmd       = flatten([for task in var.init_tasks : task.runcmd == null ? [] : task.runcmd])
 
   # extract the "apt_sources" from each init_task, and omit null values
   init_tasks_apt_sources = [for task in var.init_tasks : task.apt_sources == null ? {} : { 
@@ -42,15 +44,16 @@ locals {
   content = templatefile(
     "${path.module}/cloud-config.yml.tftpl",
     {
-      apt_sources = merge(local.init_tasks_apt_sources...)
-      hostname    = var.hostname
-      os_packages = toset(sort(concat(
+      apt_sources  = merge(local.init_tasks_apt_sources...)
+      extra_config = local.init_tasks_extra_config
+      hostname     = var.hostname
+      os_packages  = toset(sort(concat(
         local.init_tasks_packages,
         local.default_packages
       )))
-      runcmd      = concat(local.init_tasks_runcmd, local.default_runcmd)
-      users       = local.users
-      write_files = concat(local.init_tasks_write_files)
+      runcmd       = concat(local.init_tasks_runcmd, local.default_runcmd)
+      users        = local.users
+      write_files  = concat(local.init_tasks_write_files)
     }
   )
   content_hash = md5(local.content)

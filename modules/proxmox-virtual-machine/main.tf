@@ -12,7 +12,6 @@ locals {
   startup_order = local.startup_phases[var.startup_phase]
 }
 
-
 resource "proxmox_virtual_environment_vm" "main" {
   boot_order    = ["scsi0"] 
   description   = var.description

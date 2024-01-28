@@ -114,6 +114,12 @@ variable "description" {
   type        = string  
 }
 
+variable "mac_address" {
+  default     = null
+  description = "MAC address to assign to the primary NIC for this vm."
+  type        = string
+}
+
 variable "memory" {
   default     = 512
   description = "RAM allocated to this VM, in megabytes"

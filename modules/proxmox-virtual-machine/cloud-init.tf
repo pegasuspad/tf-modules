@@ -8,13 +8,14 @@ locals {
   #   x6:xx:xx:xx:xx:xx
   #   xA:xx:xx:xx:xx:xx
   #   xE:xx:xx:xx:xx:xx
-  mac_address = format("${local.mac_prefix}:%02x:%02x:%02x:%02x:%02x",
+  random_mac_address = format("${local.mac_prefix}:%02x:%02x:%02x:%02x:%02x",
     random_integer.mac_bytes[0].result,
     random_integer.mac_bytes[1].result,
     random_integer.mac_bytes[2].result,
     random_integer.mac_bytes[3].result,
     random_integer.mac_bytes[4].result
   )
+  mac_address = var.mac_address != null ? var.mac_address : local.random_mac_address
 
   netmask            = try(var.network_config.netmask, null) == null ? local.default_netmask : var.network_config.netmask
   search_domain      = try(var.network_config.dns_search_domain, null) == null ? null : [var.network_config.dns_search_domain]

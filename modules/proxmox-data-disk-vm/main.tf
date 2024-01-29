@@ -1,13 +1,14 @@
+locals {
+  tags = sort(concat(var.tags, ["never-start"]))
+}
+
 resource "proxmox_virtual_environment_vm" "main" {
   name      = var.name
   node_name = var.proxmox_node
   on_boot   = false
   started   = false
+  tags      = local.tags
   vm_id     = var.vmid
-
-  tags = [
-    "never-start"
-  ]
 
   dynamic "disk" {
     for_each = var.disk_config

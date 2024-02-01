@@ -13,16 +13,16 @@ locals {
 }
 
 resource "proxmox_virtual_environment_vm" "main" {
-  boot_order    = ["scsi0"] 
-  description   = var.description
-  name          = var.name
-  node_name     = var.proxmox_node
-  on_boot       = local.startup_order == null ? false : true
-  scsi_hardware = "virtio-scsi-single"
-  started       = true
-  tags          = concat(local.default_tags, var.tags)
+  boot_order     = ["scsi0"] 
+  description    = var.description
+  name           = var.name
+  node_name      = var.proxmox_node
+  on_boot        = local.startup_order == null ? false : true
+  scsi_hardware  = "virtio-scsi-single"
+  started        = true
+  tags           = concat(local.default_tags, var.tags)
   timeout_create = 1800
-  vm_id         = var.vmid
+  vm_id          = var.vmid
 
   agent {
     enabled = true
@@ -94,5 +94,16 @@ resource "proxmox_virtual_environment_vm" "main" {
 
   vga {
     type       = "serial0" 
+  }
+}
+
+# updated each time our VM changes
+resource "random_id" "revision_id" {
+  byte_length = 8
+
+  lifecycle {
+    replace_triggered_by = [
+      proxmox_virtual_environment_vm.main
+    ]
   }
 }
